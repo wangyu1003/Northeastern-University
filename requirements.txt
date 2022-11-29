@@ -1,0 +1,8 @@
+numpy~=1.21.4
+matplotlib~=3.5.1
+tensorflow~=2.7.0
+networkx~=2.6.3
+keras~=2.7.0
+setuptools~=58.0.4
+gym~=0.22.0
+pandas~=1.4.2
