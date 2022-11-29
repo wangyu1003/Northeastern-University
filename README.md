@@ -2,7 +2,7 @@
 ```ruby
 pip install -r requirements.txt
 ```
-2. Now we are ready to train MPDRL agent and DDPG agent. To do this, we must execute the following command.
+2、 Now we are ready to train MPDRL agent and DDPG agent. To do this, we must execute the following command.
 ```ruby
 python MPDRL.py
 python DDPG.py
