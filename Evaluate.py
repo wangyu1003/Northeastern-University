@@ -16,6 +16,7 @@ from ReplayBuffer import ReplayBuffer
 from DDPG import DRLactor, Replaybuffer
 from DDPG import DRLcritic
 from Environment import Env
+from scipy import stats
 import matplotlib.pyplot as plt
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -422,25 +423,26 @@ if __name__ == "__main__":
 
     ep_num = 1
     k = 0
-    demand = 10
+    average = 10
 
     while ep_num <= NUMBER_EPISODES:
-        i = 1
-        while i <= NUMBER_SESSIONS:
+        i = 0
+        demand = stats.poisson.rvs(mu=average, size=NUMBER_SESSIONS, random_state=None)
+        while i < NUMBER_SESSIONS:
             source = np.random.choice(env.nodes)
             # We pick a pair of SOURCE,DESTINATION different nodes
             destination = np.random.choice(env.nodes)
             while True:
                 destination = np.random.choice(env.nodes)
                 if destination != source:
-                    experience_memory.append((ep_num, demand, source, destination))
+                    experience_memory.append((ep_num, demand[i], source, destination))
                     break
             time = np.random.randint(1, 10)
             survival_time1[k] = time
             survival_time2[k] = time
             i += 1
             k += 1
-        demand += 5
+        average += 5
         ep_num += 1
 
     MAX_link_utilization_ecmp, delay_ecmp, Utility_ecmp = exec_ecmp_model_episodes(experience_memory)
