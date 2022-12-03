@@ -156,7 +156,7 @@ class MDAgent(object):
         return inputs
 
 
-def exec_MD(experience_memory, link_memory, time_interval, env, agent):
+def exec_MD(experience_memory, link_memory, env, agent):
     iter_step = 1
     counts = 0
     record = deque(maxlen=12)
@@ -165,41 +165,36 @@ def exec_MD(experience_memory, link_memory, time_interval, env, agent):
         demand = experience_memory[iter_step-1][0]
         source = experience_memory[iter_step-1][1]
         destination = experience_memory[iter_step-1][2]
-        i = 0
-        while i < len(time_interval):
-            time_interval[i] -= 1
-            i += 1
         if iter_step == 1:
             state = env.eval_sap_reset(demand, source, destination)
             for position in link_memory:
                 state[position][0] = 0
         action, state_action = agent.choose_action(env, state, demand, source, destination)
-        new_state, reward = env.step_robust(state, action, source, destination, demand, link_memory, time_interval)
+        new_state, reward = env.step_robust(state, action, source, destination, demand, link_memory)
         state = new_state
         iter_step += 1
         flag_count = True
         k = 0
         while k < len(link_memory):
-            if time_interval[k] > 0:
-                position = link_memory[k]
-                if state[position][0] < 0:
-                    i = 0
-                    if iter_step == 1:
-                        record.append([position, 1])
-                    flag = True
-                    while i < len(record):
-                        if record[i][0] == position:
-                            record[i][1] += 1
-                            times = record[i][1]
-                            flag = False
-                            break
-                        i += 1
-                    if flag:
-                        times = 1
-                        record.append([position, 1])
-                    if state[position][2] == demand * times and flag_count:
-                        flag_count = False
-                        counts += 1
+              position = link_memory[k]
+              if state[position][0] < 0:
+                  i = 0
+                  if iter_step == 1:
+                      record.append([position, 1])
+                  flag = True
+                  while i < len(record):
+                      if record[i][0] == position:
+                          record[i][1] += 1
+                          times = record[i][1]
+                          flag = False
+                          break
+                      i += 1
+                  if flag:
+                      times = 1
+                      record.append([position, 1])
+                  if state[position][2] == demand * times and flag_count:
+                      flag_count = False
+                      counts += 1
             k += 1
     return counts
 
@@ -241,46 +236,41 @@ def exec_DDPG(experience_memory, link_memory, time_interval, env, agent):
         demand = experience_memory[iter_step - 1][0]
         source = experience_memory[iter_step - 1][1]
         destination = experience_memory[iter_step - 1][2]
-        i = 0
-        while i < len(time_interval):
-            time_interval[i] -= 1
-            i += 1
         if iter_step == 1:
             state = env.eval_sap_reset(demand, source, destination)
             for position in link_memory:
                 state[position][0] = 0
         action = agent.get_action(state)
-        new_state, reward = env.step_robust(state, action, source, destination, demand, link_memory, time_interval)
+        new_state, reward = env.step_robust(state, action, source, destination, demand, link_memory)
         state = new_state
         iter_step += 1
         flag_count = True
         k = 0
         while k < len(link_memory):
-            if time_interval[k] > 0:
-                position = link_memory[k]
-                if state[position][0] < 0:
-                    i = 0
-                    if iter_step == 1:
-                        record.append([position, 1])
-                    flag = True
-                    while i < len(record):
-                        if record[i][0] == position:
-                            record[i][1] += 1
-                            times = record[i][1]
-                            flag = False
-                            break
-                        i += 1
-                    if flag:
-                        times = 1
-                        record.append([position, 1])
-                    if state[position][2] == demand * times and flag_count:
-                        flag_count = False
-                        counts += 1
+              position = link_memory[k]
+              if state[position][0] < 0:
+                  i = 0
+                  if iter_step == 1:
+                      record.append([position, 1])
+                  flag = True
+                  while i < len(record):
+                      if record[i][0] == position:
+                          record[i][1] += 1
+                          times = record[i][1]
+                          flag = False
+                          break
+                      i += 1
+                  if flag:
+                      times = 1
+                      record.append([position, 1])
+                  if state[position][2] == demand * times and flag_count:
+                      flag_count = False
+                      counts += 1
             k += 1
     return counts
 
 
-def exec_ECMP(experience_memory, link_memory, time_interval):
+def exec_ECMP(experience_memory, link_memory):
     evaluate_ecmp = ecmp()
     iter_step = 1
     counts = 0
@@ -291,16 +281,13 @@ def exec_ECMP(experience_memory, link_memory, time_interval):
         source = experience_memory[iter_step - 1][1]
         destination = experience_memory[iter_step - 1][2]
         i = 0
-        while i < len(time_interval):
-            time_interval[i] -= 1
-            i += 1
         if iter_step == 1:
             state = env.eval_sap_reset(demand, source, destination)
             link_capacities = state[:, 0]
             link_loads = state[:, 2]
             for position in link_memory:
                 link_capacities[position] = 0
-        new_link_capacities, new_link_loads, flag = evaluate_ecmp.robust_ecmp(source, destination, demand, link_capacities, link_loads, link_memory, time_interval)
+        new_link_capacities, new_link_loads, flag = evaluate_ecmp.robust_ecmp(source, destination, demand, link_capacities, link_loads, link_memory)
         link_capacities = new_link_capacities
         link_loads = new_link_loads
         iter_step += 1
@@ -310,7 +297,7 @@ def exec_ECMP(experience_memory, link_memory, time_interval):
     return counts
 
 
-def exec_OSPF(experience_memory, link_memory, time_interval):
+def exec_OSPF(experience_memory, link_memory):
     evaluate_ospf = ospf('Ebone-Evaluate')
     iter_step = 1
     counts = 0
@@ -322,10 +309,6 @@ def exec_OSPF(experience_memory, link_memory, time_interval):
         demand = experience_memory[iter_step - 1][0]
         source = experience_memory[iter_step - 1][1]
         destination = experience_memory[iter_step - 1][2]
-        i = 0
-        while i < len(time_interval):
-            time_interval[i] -= 1
-            i += 1
         if iter_step == 1:
             state = env.eval_sap_reset(demand, source, destination)
             link_capacities = state[:, 0]
@@ -341,26 +324,25 @@ def exec_OSPF(experience_memory, link_memory, time_interval):
         flag_count = True
         k = 0
         while k < len(link_memory):
-            if time_interval[k] > 0:
-                position = link_memory[k]
-                if link_capacities[position] < 0:
-                    i = 0
-                    if iter_step == 1:
-                        record.append([position, 1])
-                    flag = True
-                    while i < len(record):
-                        if record[i][0] == position:
-                            record[i][1] += 1
-                            times = record[i][1]
-                            flag = False
-                            break
-                        i += 1
-                    if flag:
-                        times = 1
-                        record.append([position, 1])
-                    if link_loads[position] == demand * times and flag_count:
-                        flag_count = False
-                        counts += 1
+              position = link_memory[k]
+              if link_capacities[position] < 0:
+                  i = 0
+                  if iter_step == 1:
+                      record.append([position, 1])
+                  flag = True
+                  while i < len(record):
+                      if record[i][0] == position:
+                          record[i][1] += 1
+                          times = record[i][1]
+                          flag = False
+                          break
+                      i += 1
+                  if flag:
+                      times = 1
+                      record.append([position, 1])
+                  if link_loads[position] == demand * times and flag_count:
+                      flag_count = False
+                      counts += 1
             k += 1
 
     return counts
@@ -438,18 +420,6 @@ if __name__ == "__main__":
     nums = 2
     while iteration <= NUMBER_EPISODES:
         link_memory = deque(maxlen=nums)
-        time_interval1 = np.zeros(nums)
-        time_interval2 = np.zeros(nums)
-        time_interval3 = np.zeros(nums)
-        time_interval4 = np.zeros(nums)
-        k = 0
-        while k < nums:
-            time = np.random.randint(5, 20)
-            time_interval1[k] = time
-            time_interval2[k] = time
-            time_interval3[k] = time
-            time_interval4[k] = time
-            k += 1
         j = 0
         index = set()
         while len(index) < nums:
@@ -462,10 +432,10 @@ if __name__ == "__main__":
             j += 1
         iteration += 1
         nums += 2
-        counts1 = exec_MD(experience_memory, link_memory, time_interval1, env, MD_agent)
-        counts2 = exec_DDPG(experience_memory, link_memory, time_interval2, env, DDPG_agent)
-        counts3 = exec_ECMP(experience_memory, link_memory, time_interval3)
-        counts4 = exec_OSPF(experience_memory, link_memory, time_interval4)
+        counts1 = exec_MD(experience_memory, link_memory, env, MD_agent)
+        counts2 = exec_DDPG(experience_memory, link_memory, env, DDPG_agent)
+        counts3 = exec_ECMP(experience_memory, link_memory)
+        counts4 = exec_OSPF(experience_memory, link_memory)
         MD_counts.append(counts1)
         DDPG_counts.append(counts2)
         ECMP_counts.append(counts3)
