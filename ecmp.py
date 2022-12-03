@@ -66,19 +66,19 @@ class ecmp(object):
         delay = sum(link_loads / link_capacities)
         return max_utilization, delay, link_capacities, link_loads
 
-    def robust_ecmp(self, source, destination, demand, link_capacities, link_loads, link_memory, time_interval):
+    def robust_ecmp(self, source, destination, demand, link_capacities, link_loads, link_memory):
         self.flag = False
-        eval_link_loads = self.ecmp_traffic_distribution_robust(source, destination, demand, link_memory, time_interval)
+        eval_link_loads = self.ecmp_traffic_distribution_robust(source, destination, demand, link_memory)
         link_capacities = link_capacities - eval_link_loads
         link_loads += eval_link_loads
         return link_capacities, link_loads, self.flag
 
-    def ecmp_traffic_distribution_robust(self, source, destination, demand, link_memory, time_interval):
+    def ecmp_traffic_distribution_robust(self, source, destination, demand, link_memory):
         link_loads = np.zeros(self.num_links)
-        self.ecmp_next_hop_distribution_robust(link_loads, demand, source, destination, link_memory, time_interval)
+        self.ecmp_next_hop_distribution_robust(link_loads, demand, source, destination, link_memory)
         return link_loads
 
-    def ecmp_next_hop_distribution_robust(self, link_loads, demand, source, destination, link_memory, time_interval):
+    def ecmp_next_hop_distribution_robust(self, link_loads, demand, source, destination, link_memory):
         if source == destination:
             return
         ecmp_next_hops = self.ecmp_next_hops[source, destination]
@@ -89,11 +89,10 @@ class ecmp(object):
                 if source < np:
                     link_loads[self.link_sd_to_idx[(source, np)]] += ecmp_demand
                     k = 0
-                    while k < len(link_memory):
-                        if time_interval[k] > 0:
-                            if link_memory[k] == self.link_sd_to_idx[(source, np)]:
-                                self.flag = True
-                                break
+                    while k < len(link_memory): 
+                          if link_memory[k] == self.link_sd_to_idx[(source, np)]:
+                              self.flag = True
+                              break
                         k += 1
                 if source > np:
                     link_loads[self.link_sd_to_idx[(np, source)]] += ecmp_demand
@@ -114,4 +113,4 @@ class ecmp(object):
                     if link == self.link_sd_to_idx[(np, source)]:
                         self.flag = True
                         break
-            self.ecmp_next_hop_distribution_robust(link_loads, ecmp_demand, np, destination, link_memory, time_interval)
+            self.ecmp_next_hop_distribution_robust(link_loads, ecmp_demand, np, destination, link_memory)
