@@ -176,7 +176,7 @@ def exec_MD_model_episodes(experience_memory, env, agent):
             if isFlag == True:
                 state = env.eval_sap_reset(demand, source, destination)
             action, state_action = agent.choose_action(env, state, demand, source, destination)
-            new_state, reward = env.step_eval(state, action, source, destination, demand, start, count)
+            new_state, reward = env.step_eval(state, action, source, destination, demand)
             state = new_state
             iter_step += 1
             count += 1
@@ -242,7 +242,7 @@ def exec_DRL_model_episodes(experience_memory, env, agent):
             if isFlag == True:
                 state = env.eval_sap_reset(demand, source, destination)
             action = agent.get_action(state)
-            new_state, reward = env.step_eval(state, action, source, destination, demand, start, count)
+            new_state, reward = env.step_eval(state, action, source, destination, demand)
 
             state = new_state
             iter_step += 1
