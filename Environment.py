@@ -431,16 +431,12 @@ class Env(object):
 
         return self.graph_state, self.reward
 
-    def step_robust(self, state, action, source, destination, demand, link_memory, time_interval):
+    def step_robust(self, state, action, source, destination, demand):
         self.graph_state = np.copy(state)
         self.step_over = True
         self.reward = 0
         self.p = 0
-        index = 0
-        while index < len(link_memory):
-            if time_interval[index] == 0:
-                self.graph_state[link_memory[index]][0] = self.link_capacities[link_memory[index]]
-            index += 1
+        
         j = 0
         f = open(self.topology_file, 'r')
         header = f.readline()
