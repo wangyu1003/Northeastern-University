@@ -159,30 +159,24 @@ class MDAgent(object):
         return inputs
 
 
-def exec_MD_model_episodes(experience_memory, survival_time, env, agent):
+def exec_MD_model_episodes(experience_memory, env, agent):
     MAX_link_utilization_MD = np.zeros(NUMBER_EPISODES)
     delay_MD = np.zeros(NUMBER_EPISODES)
     Utility_MD = np.zeros(NUMBER_EPISODES)
-
     iter_episode = 0
     count = 0
     isFlag = True
     while iter_episode < NUMBER_EPISODES:
         iter_step = 0
         utility = 0
-        start = count
         while iter_step < NUMBER_SESSIONS:
-            index = start
-            while start <= index <= count:
-                survival_time[index] -= 1
-                index += 1
             demand = experience_memory[count][1]
             source = experience_memory[count][2]
             destination = experience_memory[count][3]
             if isFlag == True:
                 state = env.eval_sap_reset(demand, source, destination)
             action, state_action = agent.choose_action(env, state, demand, source, destination)
-            new_state, reward = env.step_eval(state, action, source, destination, demand, survival_time, start, count)
+            new_state, reward = env.step_eval(state, action, source, destination, demand, start, count)
             state = new_state
             iter_step += 1
             count += 1
@@ -230,7 +224,7 @@ class DDPGAgent(object):
         return action
 
 
-def exec_DRL_model_episodes(experience_memory, survival_time, env, agent):
+def exec_DRL_model_episodes(experience_memory, env, agent):
     MAX_link_utilization_DRL = np.zeros(NUMBER_EPISODES)
     delay_DRL = np.zeros(NUMBER_EPISODES)
     Utility_DRL = np.zeros(NUMBER_EPISODES)
@@ -241,19 +235,14 @@ def exec_DRL_model_episodes(experience_memory, survival_time, env, agent):
     while iter_episode < NUMBER_EPISODES:
         iter_step = 0
         utility = 0
-        start = count
         while iter_step < NUMBER_SESSIONS:
-            index = start
-            while start <= index <= count:
-                survival_time[index] -= 1
-                index += 1
             demand = experience_memory[count][1]
             source = experience_memory[count][2]
             destination = experience_memory[count][3]
             if isFlag == True:
                 state = env.eval_sap_reset(demand, source, destination)
             action = agent.get_action(state)
-            new_state, reward = env.step_eval(state, action, source, destination, demand, survival_time, start, count)
+            new_state, reward = env.step_eval(state, action, source, destination, demand, start, count)
 
             state = new_state
             iter_step += 1
@@ -422,7 +411,6 @@ if __name__ == "__main__":
     survival_time2 = np.zeros(NUMBER_EPISODES * NUMBER_SESSIONS)
 
     ep_num = 1
-    k = 0
     average = 10
 
     while ep_num <= NUMBER_EPISODES:
@@ -437,18 +425,15 @@ if __name__ == "__main__":
                 if destination != source:
                     experience_memory.append((ep_num, demand[i], source, destination))
                     break
-            time = np.random.randint(1, 10)
-            survival_time1[k] = time
-            survival_time2[k] = time
             i += 1
-            k += 1
+            
         average += 5
         ep_num += 1
 
     MAX_link_utilization_ecmp, delay_ecmp, Utility_ecmp = exec_ecmp_model_episodes(experience_memory)
     MAX_link_utilization_ospf, delay_ospf, Utility_ospf = exec_ospf_model_episodes(experience_memory)
-    MAX_link_utilization_MD, delay_MD, Utility_MD = exec_MD_model_episodes(experience_memory, survival_time1, env, MD_agent)
-    MAX_link_utilization_DDPG, delay_DDPG, Utility_DDPG = exec_DRL_model_episodes(experience_memory, survival_time2, env, DDPG_agent)
+    MAX_link_utilization_MD, delay_MD, Utility_MD = exec_MD_model_episodes(experience_memory, env, MD_agent)
+    MAX_link_utilization_DDPG, delay_DDPG, Utility_DDPG = exec_DRL_model_episodes(experience_memory, env, DDPG_agent)
 
     if not os.path.exists("./evaluate_result/Ebone"):
         os.makedirs("./evaluate_result/Ebone")
