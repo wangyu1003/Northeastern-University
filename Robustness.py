@@ -170,7 +170,7 @@ def exec_MD(experience_memory, link_memory, env, agent):
             for position in link_memory:
                 state[position][0] = 0
         action, state_action = agent.choose_action(env, state, demand, source, destination)
-        new_state, reward = env.step_robust(state, action, source, destination, demand, link_memory)
+        new_state, reward = env.step_robust(state, action, source, destination, demand)
         state = new_state
         iter_step += 1
         flag_count = True
@@ -241,7 +241,7 @@ def exec_DDPG(experience_memory, link_memory, time_interval, env, agent):
             for position in link_memory:
                 state[position][0] = 0
         action = agent.get_action(state)
-        new_state, reward = env.step_robust(state, action, source, destination, demand, link_memory)
+        new_state, reward = env.step_robust(state, action, source, destination, demand)
         state = new_state
         iter_step += 1
         flag_count = True
