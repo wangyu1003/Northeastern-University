@@ -78,8 +78,7 @@ def generate_nx_graph(self, config, data_dir='./data/'):
         i, s, d, w, c = link
         link_capacities[int(i)] = float(c)
 
-    linkID = 1  # 计数器
-    # 边属性
+    linkID = 1  
     for s, d in G.edges():
         G.get_edge_data(s, d)['edgeId'] = linkID
         G.get_edge_data(s, d)["capacity"] = link_capacities[s]
@@ -372,28 +371,10 @@ class Env(object):
 
         return self.graph_state, self.reward, self.source, self.destination, self.demand, self.step_over
 
-    def step_eval(self, state, action, source, destination, demand, survival_time, start, count):
+    def step_eval(self, state, action, source, destination, demand):
         self.graph_state = np.copy(state)
         self.reward = 0
         self.p = 0
-        index = start
-        while start <= index < count:
-            if survival_time[index] == 0:
-                i = 0
-                j = 1
-                path = self.pathList[index]
-                while j < len(path):
-                    self.graph_state[self.edgesDict[str(path[i]) + ':' + str(path[j])]][2] -= demand
-                    self.graph_state[self.edgesDict[str(path[i]) + ':' + str(path[j])]][0] += demand
-                    bw_l = self.graph_state[self.edgesDict[str(path[i]) + ':' + str(path[j])]][2]
-                    capacity_l = self.graph_state[self.edgesDict[str(path[i]) + ':' + str(path[j])]][
-                                     0] + \
-                                 self.graph_state[self.edgesDict[str(path[i]) + ':' + str(path[j])]][2]
-                    utilization_l = bw_l / capacity_l
-                    self.graph_state[self.edgesDict[str(path[i]) + ':' + str(path[j])]][1] = utilization_l
-                    i = i + 1
-                    j = j + 1
-            index += 1
         j = 0
         f = open(self.topology_file, 'r')
         header = f.readline()
@@ -417,7 +398,7 @@ class Env(object):
                 j = j + 1
 
         self.allPaths[str(source) + ':' + str(destination)] = []
-        # 计算加权最短路径
+    
         [self.allPaths[str(source) + ':' + str(destination)].append(p) for p in
          (nx.all_shortest_paths(self.G, source, destination, weight='weight'))]
         currentPath = self.allPaths[str(source) + ':' + str(destination)][0]
