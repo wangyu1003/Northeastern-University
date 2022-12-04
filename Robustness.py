@@ -24,7 +24,7 @@ env = Env('Ebone')
 SEED = 20   #
 
 NUMBER_EPISODES = 6
-NUMBER_SESSIONS = 20
+NUMBER_SESSIONS = 14
 
 hparams = {
     'l2': 0.1,
